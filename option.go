@@ -266,6 +266,49 @@ func OptionSetExitCheckerOnInput(fn ExitChecker) Option {
 	}
 }
 
+//NewWithInput try to use a consoleparser instead of std
+func NewWithInput(in ConsoleParser, executor Executor, completer Completer, opts ...Option) *Prompt {
+	defaultWriter := NewStdoutWriter()
+	registerConsoleWriter(defaultWriter)
+
+	pt := &Prompt{
+		in: in,
+		renderer: &Render{
+			prefix:                       "> ",
+			out:                          defaultWriter,
+			livePrefixCallback:           func() (string, bool) { return "", false },
+			prefixTextColor:              Blue,
+			prefixBGColor:                DefaultColor,
+			inputTextColor:               DefaultColor,
+			inputBGColor:                 DefaultColor,
+			previewSuggestionTextColor:   Green,
+			previewSuggestionBGColor:     DefaultColor,
+			suggestionTextColor:          White,
+			suggestionBGColor:            Cyan,
+			selectedSuggestionTextColor:  Black,
+			selectedSuggestionBGColor:    Turquoise,
+			descriptionTextColor:         Black,
+			descriptionBGColor:           Turquoise,
+			selectedDescriptionTextColor: White,
+			selectedDescriptionBGColor:   Cyan,
+			scrollbarThumbColor:          DarkGray,
+			scrollbarBGColor:             Cyan,
+		},
+		buf:         NewBuffer(),
+		executor:    executor,
+		history:     NewHistory(),
+		completion:  NewCompletionManager(completer, 6),
+		keyBindMode: EmacsKeyBind, // All the above assume that bash is running in the default Emacs setting
+	}
+
+	for _, opt := range opts {
+		if err := opt(pt); err != nil {
+			panic(err)
+		}
+	}
+	return pt
+}
+
 // New returns a Prompt with powerful auto-completion.
 func New(executor Executor, completer Completer, opts ...Option) *Prompt {
 	defaultWriter := NewStdoutWriter()
