@@ -35,6 +35,7 @@ type Prompt struct {
 	completionOnDown  bool
 	exitChecker       ExitChecker
 	skipTearDown      bool
+	exitCmd           string
 }
 
 // Exec is the struct contains user input context.
@@ -127,6 +128,10 @@ func (p *Prompt) feed(b []byte) (shouldExit bool, exec *Exec) {
 		p.buf = NewBuffer()
 		if exec.input != "" {
 			p.history.Add(exec.input)
+		}
+		if exec.input == p.exitCmd {
+			shouldExit = true
+			return
 		}
 	case ControlC:
 		p.renderer.BreakLine(p.buf)

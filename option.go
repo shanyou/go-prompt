@@ -266,6 +266,15 @@ func OptionSetExitCheckerOnInput(fn ExitChecker) Option {
 	}
 }
 
+//OptionSetExitCmd set exit cmd for prompt
+// 在使用ssh时用户正常退出是无法接收到系统信号的。因此需要有个识别退出的命令来处理退出操作
+func OptionSetExitCmd(exitCmd string) Option {
+	return func(p *Prompt) error {
+		p.exitCmd = exitCmd
+		return nil
+	}
+}
+
 //NewWithInput try to use a consoleparser instead of std
 func NewWithInput(in ConsoleParser, executor Executor, completer Completer, opts ...Option) *Prompt {
 	defaultWriter := NewStdoutWriter()
@@ -299,6 +308,7 @@ func NewWithInput(in ConsoleParser, executor Executor, completer Completer, opts
 		history:     NewHistory(),
 		completion:  NewCompletionManager(completer, 6),
 		keyBindMode: EmacsKeyBind, // All the above assume that bash is running in the default Emacs setting
+		exitCmd:     "exit",
 	}
 
 	for _, opt := range opts {
@@ -342,6 +352,7 @@ func New(executor Executor, completer Completer, opts ...Option) *Prompt {
 		history:     NewHistory(),
 		completion:  NewCompletionManager(completer, 6),
 		keyBindMode: EmacsKeyBind, // All the above assume that bash is running in the default Emacs setting
+		exitCmd:     "exit",
 	}
 
 	for _, opt := range opts {
